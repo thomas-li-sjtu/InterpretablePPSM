@@ -6,7 +6,7 @@ from input_pipeline import PAD
 
 def archMap(arch_id):
     m = {
-        1 : resnet_classic,
+        1 : resnet_classic,  # 应当将ORIGINAL.gin的arch改为1，或将这里的1改为0
     }
     return m[arch_id]
 
