@@ -1,3 +1,7 @@
+# pip install h5py==2.10
+# 否则报错：
+#   model_config = json.loads(model_config.decode('utf-8'))
+# AttributeError: 'str' object has no attribute 'decode'
 BATCH_SIZE = 1024
 MAX_LEN = 16
 CHARMAP = './charmap.pickle'
