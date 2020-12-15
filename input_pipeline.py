@@ -112,7 +112,7 @@ def makeIterInput(home, batch_size, MAX_MASKED, INCLUDE_END_SYMBOL, MAX_LEN=32, 
     # dataset = dataset.padded_batch(batch_size, padded_shapes=padded_shapes, drop_remainder=True)
 
     # 将此数据集的多个连续元素 (可能具有不同的形状) 合并到单个元素中。结果元素中的张量有一个额外的外部维度, 并填充到 padded_shapes 中的相应形状
-    dataset = dataset.padded_batch(batch_size, drop_remainder=True)
+    dataset = dataset.padded_batch(batch_size, drop_remainder=True)  # 这里是源码，有错误，需要用上面的语句替代
     dataset = dataset.prefetch(buffer_size=buffer_size)  # 预取数据,将生成数据的时间和使用数据的时间分离,在请求元素之前从输入数据集中预取这些元素
 
     return dataset, vocab_size + 1, CM

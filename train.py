@@ -31,20 +31,20 @@ def setup(name, MODEL_TYPE, home_train, home_tests, max_epochs, log_freq, MAX_LE
     MAX_MASK = hparams['masked_chars']
     INCLUDE_END_SYMBOL = hparams['append_end']
     # 数据集获取
-    train_batch, vocab_size, cm = input_pipeline.makeIterInput(home_train, hparams['batch_size'], MAX_MASK,
+    train_batch, vocab_size, charmap = input_pipeline.makeIterInput(home_train, hparams['batch_size'], MAX_MASK,
                                                                INCLUDE_END_SYMBOL, MAX_LEN)
-
+    # 设置optimizer
     optimizer = tf.keras.optimizers.Adam(hparams['learning_rate'])
     # 模型结构
-    f, train_step, predict_step = model.make_train_predict(hparams, optimizer, vocab_size, MAX_LEN)  # f:tf.keras.Model
+    pretrain_model, train_step, predict_step = model.make_train_predict(hparams, optimizer, vocab_size, MAX_LEN)  # f:tf.keras.Model
 
-    model_mem_footprint = (f.count_params() * 4) // (10 ** 6)
+    model_mem_footprint = (pretrain_model.count_params() * 4) // (10 ** 6)
     print("\t MODEL_MEM: %dMB" % model_mem_footprint)
     # prefetch预取数据,将生成数据的时间和使用数据的时间分离,在请求元素之前从输入数据集中预取这些元素
     t = Trainer(
-        f,
+        pretrain_model,
         MAX_LEN,
-        cm,
+        charmap,
         train_step,
         predict_step,
         max_epochs,
@@ -62,7 +62,7 @@ def setup(name, MODEL_TYPE, home_train, home_tests, max_epochs, log_freq, MAX_LE
     t()  # Trainer类中有__call__，则可用此方法调用
     print("EXPORT")
     mpath = os.path.join(MODEL_OUT, name + '.h5')
-    f.save(mpath, overwrite=True, include_optimizer=False, save_format='h5')  # 以h5格式保存模型参数（其他格式还有tf的SavedModel）
+    pretrain_model.save(mpath, overwrite=True, include_optimizer=False, save_format='h5')  # 以h5格式保存模型参数（其他格式还有tf的SavedModel）
 
 
 if __name__ == '__main__':
