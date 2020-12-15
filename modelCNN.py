@@ -40,14 +40,16 @@ def loss_function(real, logits, z, hparams):
     loss_type = hparams['loss_type']
 
     # if loss_type == 0:
+    # 将数字编码转化成one-hot编码格式，然后对one-hot编码格式的数据（真实标签值）与预测出的标签值使用交叉熵损失函数，在调用部分（而不是参数部分）指定y_true和y_pred
+    # from_logits=False：进行交叉熵计算时，输入的y_pred是否是logits——logits是没有经过softmax激活函数的fully connect的输出
     loss_class = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)(real, logits)
 
     shape = batch_size, z.shape.as_list()[1]
 
-    ztarget = tf.random.normal(shape)
+    ztarget = tf.random.normal(shape)  # 正态分布输出随机值——迫使其生成的隐含向量能够粗略的遵循一个标准正态分布，通过解码器就能够生成我们想要的图片，而不需要给它一张原始图片先编码
     latent_reg = mmd_loss(z, ztarget) * alpha
 
-    loss_ = loss_class + latent_reg
+    loss_ = loss_class + latent_reg  # 这里说明不是一般的AE，而是VAE（变分编码器  https://arxiv.org/pdf/1512.09300.pdf）
 
     return loss_
 
@@ -94,7 +96,7 @@ def make_train_predict(hparams, optimizer, DICT_SIZE, MAX_LEN):
     return model, train_step, predict_step
 
 
-# ----------______________-----------------________________-----------------
+# mmd_loss的计算
 
 sigmas = [1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1, 5, 10, 15, 20, 25, 30, 35, 100, 1e3, 1e4, 1e5, 1e6]
 
@@ -127,7 +129,19 @@ def maximum_mean_discrepancy(x, y, kernel):
 
 
 def mmd_loss(source_samples, target_samples, scope=None):
-    """ from https://github.com/tensorflow/models/blob/master/research/domain_adaptation/domain_separation/losses.py """
+    """
+    最大均值差异
+    Args:
+        source_samples: 源样本
+        target_samples: 目标
+        scope:
+
+    Returns: 损失值
+    """
+    """ 
+    (此链接已经失效)
+    from https://github.com/tensorflow/models/blob/master/research/domain_adaptation/domain_separation/losses.py 
+    """
 
     gaussian_kernel = partial(gaussian_kernel_matrix, sigmas=tf.constant(sigmas))
 
