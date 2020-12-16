@@ -24,12 +24,24 @@ layer_norm = lambda x: tf.keras.layers.LayerNormalization(epsilon=EPSILON_NORM)(
 
 
 def ResBlockDeepBNK(inputs, dim, filter_size, activation, with_batch_norm=True, training=True):
+    """
+    三层 一维卷积+正则
+    Args:
+        inputs: 输入数据
+        dim:
+        filter_size:
+        activation: 激活函数
+        with_batch_norm: 是否正则化
+        training:
+
+    Returns: input + 0.3*卷积结果
+    """
     x = inputs
 
     dim_BNK = dim // 2
 
     if with_batch_norm:
-        x = tf.keras.layers.BatchNormalization()(x)
+        x = tf.keras.layers.BatchNormalization()(x)  # 正则
 
     x = tf.keras.layers.Activation(activation)(x)
     x = tf.keras.layers.Conv1D(dim_BNK, 3, padding='same')(x)
@@ -117,11 +129,12 @@ def resnet_backbone(x, max_len, vocab_size, hparams):
 
     # latent space
     x = tf.keras.layers.Flatten()(x)
-    z = tf.keras.layers.Dense(latent_size)(x)
+    z = tf.keras.layers.Dense(latent_size)(x)  # 中间层
     x = tf.keras.layers.Dense(output_shape[0] * layer_dim)(z)
     x = tf.keras.layers.Reshape([output_shape[0], layer_dim])(x)
 
     # decoder
+    # TODO 为什么这里依然是block?
     for i in range(n_blocks):
         x = block(x, layer_dim, activation=activation, with_batch_norm=batch_norm, filter_size=filter_size)
 
@@ -130,7 +143,7 @@ def resnet_backbone(x, max_len, vocab_size, hparams):
 
 def resnet_classic(input, max_len, vocab_size, hparams):
     """
-
+    模型入口
     Args:
         input: 输入层
         max_len: 口令最长长度
