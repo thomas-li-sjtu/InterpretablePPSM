@@ -140,18 +140,18 @@ class Trainer:
         inf = Inference(self.AE_model, self.charmap, self.max_len, batch_size)
 
         scores = []
-        paths = glob(self.home_tests)
+        paths = glob(self.home_tests)  # 获得路径home_tests('./HOME/TESTs/*.txt')
         for path in paths:
             name = os.path.basename(path).split('-')[0]
             print(name)
             X, F = readPC(path, self.max_len - 1, encoding='ascii')
-            R = rank(F)
-            R = np.array(R)
+            rank_result = rank(F)  # 去重并获得排序序号
+            rank_result = np.array(rank_result)
 
             # apply model
             UP = inf.applyBatch(X, INCLUDE_END_SYMBOL=self.hparams['append_end'])
             UP = np.array(UP)
-            score = getScore(UP, R)
+            score = getScore(UP, rank_result)
             scores += [(name, score)]
 
         return scores
